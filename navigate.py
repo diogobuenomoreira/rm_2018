@@ -1,5 +1,5 @@
-import vrep, time
-
+import vrep, time, cv2
+import numpy as np
 server_IP = "127.0.0.1"
 server_port = 25000
 nome_sensor = []
@@ -27,6 +27,10 @@ if (clientID!=-1):
 		else:
 			print (nome_sensor[i] + " conectado")
 			handle_sensores.append(handle)
+			
+	#Vision sensor		
+	res, visionHandle = vrep.simxGetObjectHandle(clientID, "Vision_sensor", vrep.simx_opmode_oneshot_wait)		
+			
 #------------------------------Inicializa Motores ----------------------------
 	resLeft, handle_motor_esq = vrep.simxGetObjectHandle(clientID, "Pioneer_p3dx_leftMotor", vrep.simx_opmode_oneshot_wait)
 	if(resLeft != vrep.simx_return_ok):
@@ -39,6 +43,7 @@ if (clientID!=-1):
 		print("Motor Direito: Handle nao encontrado!")
 	else:
 		print("Motor Direito: Conectado")
+
 
 else:
 	print("Servidor desconectado!")
@@ -66,12 +71,28 @@ def ler_distancias(sensorHandle):
 			time.sleep(0.1)
 	return distancias
 	
-
+display = False
 #------------------------------ Loop principal ----------------------------
 while vrep.simxGetConnectionId(clientID) != -1:
 	vLeft = vRight = 5
 	dist = ler_distancias(handle_sensores)
 	"""
+	#codigo pra ler da camera
+	code, resolution, image = vrep.simxGetVisionSensorImage(clientID, visionHandle, 0, vrep.simx_opmode_streaming)
+	if code == vrep.simx_return_ok:
+		if not display:
+		    img = np.array(image,dtype=np.uint8)
+		    img.resize([resolution[1],resolution[0], 3])
+		    cv2.imshow('image',img)
+		    display=True
+		    if cv2.waitKey(1) & 0xFF == ord('q'):
+		        break
+	"""
+	
+
+	
+	"""
+	
 	if dist:
 		for i in range(len(dist)):
 			if(dist[i] < noDetectionDist):
