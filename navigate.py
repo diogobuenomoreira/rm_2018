@@ -131,7 +131,7 @@ while vrep.simxGetConnectionId(clientID) != -1:
       vLeft = vLeft + braitenbergL[i]*detect[i]
       vRight = vRight+ braitenbergR[i]*detect[i]
   if center != None:
-    if center[1]+40 < resolution[0]/2.0:
+    if center[1]+45 < resolution[0]/2.0:
       #vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, vRight, vrep.simx_opmode_streaming)
       vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, 3.9, vrep.simx_opmode_streaming)
       vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, 4.0, vrep.simx_opmode_streaming)
