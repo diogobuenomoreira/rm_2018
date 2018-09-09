@@ -62,9 +62,9 @@ def ler_distancias(sensorHandle):
   return distancias
 
 display = False
-pink_low = (140,0,0)
+pink_low = (140,100,0)
 pink_high = (180,255,255)
-min_radius = 2
+min_radius = 10
 #------------------------------ Loop principal ----------------------------
 while vrep.simxGetConnectionId(clientID) != -1:
   vLeft = vRight = 5
@@ -108,7 +108,7 @@ while vrep.simxGetConnectionId(clientID) != -1:
 
       # Print out the location of the largest detected contour
       if center != None:
-        print str(center)
+        print str(center) + ' ' +str(radius)
 
       # Draw a green circle around the largest enclosed contour
       if center != None:
@@ -128,18 +128,20 @@ while vrep.simxGetConnectionId(clientID) != -1:
         detect[i]=0
 
     for i in range(8):
-      vLeft = vLeft + braitenbergL[i]*detect[i]
-      vRight = vRight+ braitenbergR[i]*detect[i]
-  if center != None:
-    if center[1]+45 < resolution[0]/2.0:
-      #vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, vRight, vrep.simx_opmode_streaming)
-      vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, 3.9, vrep.simx_opmode_streaming)
-      vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, 4.0, vrep.simx_opmode_streaming)
+      vLeft = vLeft + 1.2*braitenbergL[i]*detect[i]
+      vRight = vRight + 1.2*braitenbergR[i]*detect[i]
+
+  if center != None and radius < resolution[0]/2.5:
+    if center[0] < resolution[0]*2.0/5.0:
+      vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, 0.55*vLeft, vrep.simx_opmode_streaming)
+      vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, 0.60*vRight, vrep.simx_opmode_streaming)
     else:
-      #vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, vLeft, vrep.simx_opmode_streaming)
-      vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, 4.0, vrep.simx_opmode_streaming)
-      vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, 3.9, vrep.simx_opmode_streaming)
+      vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, 0.60*vLeft, vrep.simx_opmode_streaming)
+      vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, 0.55*vRight, vrep.simx_opmode_streaming)
+    #else:
+    #  vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, vLeft, vrep.simx_opmode_streaming)
+    #  vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, vRight, vrep.simx_opmode_streaming)
   else:
-    vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, vLeft, vrep.simx_opmode_streaming)
-    vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, vRight, vrep.simx_opmode_streaming)
+    vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, 0.60*vLeft, vrep.simx_opmode_streaming)
+    vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, 0.60*vRight, vrep.simx_opmode_streaming)
 
