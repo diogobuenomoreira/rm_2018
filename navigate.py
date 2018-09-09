@@ -64,6 +64,8 @@ def ler_distancias(sensorHandle):
 display = False
 pink_low = (140,100,0)
 pink_high = (180,255,255)
+green_low = (45,100,50)
+green_high = (75,255,255)
 min_radius = 10
 #------------------------------ Loop principal ----------------------------
 while vrep.simxGetConnectionId(clientID) != -1:
@@ -73,6 +75,7 @@ while vrep.simxGetConnectionId(clientID) != -1:
   #codigo pra ler da camera
   code, resolution, image = vrep.simxGetVisionSensorImage(clientID, visionHandle, 0, vrep.simx_opmode_streaming)
   center = None
+  center_green = None
   radius = 0
   if code == vrep.simx_return_ok:
       """
@@ -94,8 +97,10 @@ while vrep.simxGetConnectionId(clientID) != -1:
       #cv2.imshow('image',img)
       # Aplicar mascara da cor rosa
       img_binary = cv2.inRange(img_hsv, pink_low, pink_high)
+      img_binary_green = cv2.inRange(img_hsv, green_low, green_high)
       # Obter os contornos
       contours = cv2.findContours(img_binary.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+      contours_green = cv2.findContours(img_binary_green.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
       # Encontrar o maior contorno
       if len(contours) > 0:
         c = max(contours, key=cv2.contourArea)
@@ -105,6 +110,14 @@ while vrep.simxGetConnectionId(clientID) != -1:
           center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
           if radius < min_radius:
             center = None
+      if len(contours_green) > 0:
+        c = max(contours_green, key=cv2.contourArea)
+        ((x, y), radius) = cv2.minEnclosingCircle(c)
+        M = cv2.moments(c)
+        if M["m00"] > 0:
+          center_green = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+          if radius < min_radius:
+            center_green = None
 
       # Print out the location of the largest detected contour
       if center != None:
@@ -112,7 +125,9 @@ while vrep.simxGetConnectionId(clientID) != -1:
 
       # Draw a green circle around the largest enclosed contour
       if center != None:
-        cv2.circle(img, center, int(round(radius)), (0, 255, 0))
+        cv2.circle(img, center, int(round(radius)), (255,0,128))
+      if center_green != None:
+        cv2.circle(img, center_green, int(round(radius)), (0,255,0))
 
       cv2.imshow('image door',cv2.cvtColor(img,cv2.COLOR_RGB2BGR))
 
@@ -128,16 +143,18 @@ while vrep.simxGetConnectionId(clientID) != -1:
         detect[i]=0
 
     for i in range(8):
-      vLeft = vLeft + 1.2*braitenbergL[i]*detect[i]
-      vRight = vRight + 1.2*braitenbergR[i]*detect[i]
+      vLeft = vLeft + braitenbergL[i]*detect[i]
+      vRight = vRight + braitenbergR[i]*detect[i]
 
-  if center != None and radius < resolution[0]/2.5:
-    if center[0] < resolution[0]*1.5/5.0:
-      vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, 0.55*vLeft, vrep.simx_opmode_streaming)
-      vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, 0.60*vRight, vrep.simx_opmode_streaming)
+  alpha = 0.8
+  if center != None and center_green != None and radius < resolution[1]/1.85:
+    door_center = alpha*np.array(center)+(1-alpha)*np.array(center_green)
+    if door_center[0] < resolution[0]*1.0/3.0:
+      vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, 2.8, vrep.simx_opmode_streaming)
+      vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, 3.0, vrep.simx_opmode_streaming)
     else:
-      vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, 0.60*vLeft, vrep.simx_opmode_streaming)
-      vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, 0.55*vRight, vrep.simx_opmode_streaming)
+      vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, 3.0, vrep.simx_opmode_streaming)
+      vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, 2.8, vrep.simx_opmode_streaming)
     #else:
     #  vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, vLeft, vrep.simx_opmode_streaming)
     #  vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, vRight, vrep.simx_opmode_streaming)
