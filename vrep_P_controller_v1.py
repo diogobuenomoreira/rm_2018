@@ -111,12 +111,12 @@ while vrep.simxGetConnectionId(clientID) != -1:
                 error = abs(reference - measured)
                 u = Kp * error
                 vel = u
-                '''if(vel<0.5):
-                    vel=0.5'''
-                vel_right = right_vel + vel
-                vel_left = left_vel + vel
-                vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, vel_right , vrep.simx_opmode_streaming)
-                vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, vel_left, vrep.simx_opmode_streaming)
+                if(vel<0.5):
+                    vel=0.5
+                #vel_right = right_vel + vel
+                #vel_left = left_vel + vel
+                vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, vel , vrep.simx_opmode_streaming)
+                vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, vel, vrep.simx_opmode_streaming)
             
             
         
