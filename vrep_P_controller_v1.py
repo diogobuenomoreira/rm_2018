@@ -8,7 +8,7 @@ server_port = 25000
 nome_sensor = []
 handle_sensores = []
 
-detect = np.zeros(6)
+detect = np.zeros(16)
 noDetectionDist = 4.0
 #maxDetectionDist=0.1
 
@@ -23,7 +23,7 @@ if (clientID!=-1):
 	
 
 #------------------------------Inicializa Sensores ----------------------------
-	for i in range(0,6):
+	for i in range(0,16):
 		nome_sensor.append("Pioneer_p3dx_ultrasonicSensor" + str(i+1))
 
 		res, handle = vrep.simxGetObjectHandle(clientID, nome_sensor[i], vrep.simx_opmode_oneshot_wait)
@@ -74,47 +74,25 @@ def ler_distancias(sensorHandle):
 
 
 reference = 0.5
-Kp = 1
-right_vel = 1
-left_vel = 0.8
-flag = False
+Kp = 15
+
 
 #------------------------------ Loop principal ----------------------------
 while vrep.simxGetConnectionId(clientID) != -1:
     while(1):
         dist = ler_distancias(handle_sensores)
         if(dist!=[]):
-            if(min(dist)<=reference):
-                '''measured = max(dist[0],dist[1],dist[2])
-                error = abs(reference - measured)
-                u = Kp * error
-                vel = u
-                if(vel<0.5):
-                    vel=0.5'''
+            if(min(dist[2],dist[3],dist[4],dist[5])<=reference):
                 vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, -1 , vrep.simx_opmode_streaming)
                 vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, 1 , vrep.simx_opmode_streaming)
-                flag = True
-                        
-            elif(flag == False):
-                measured = min(dist[3],dist[4],dist[5])
-                error = abs(reference - measured)
-                u = Kp * error
-                vel = u
-                if(vel<0.5):
-                    vel=0.5
-                #vel_right = right_vel + vel
-                #vel_left = left_vel + vel
-                vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, vel , vrep.simx_opmode_streaming)
-                vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, vel, vrep.simx_opmode_streaming)
+               
             else:
-                measured = max(dist[0],dist[1],dist[2])
+                measured = max(dist[0],dist[15])
                 error = abs(reference - measured)
                 u = Kp * error
                 vel = u
                 if(vel<0.5):
                     vel=0.5
-                #vel_right = right_vel + vel
-                #vel_left = left_vel + vel
                 vrep.simxSetJointTargetVelocity(clientID, handle_motor_dir, vel , vrep.simx_opmode_streaming)
                 vrep.simxSetJointTargetVelocity(clientID, handle_motor_esq, vel, vrep.simx_opmode_streaming)
             
